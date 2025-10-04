@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\usuario\\Desktop\\repasoTaller\\TP4\\tl2-tp4-2025-matj1221\\MiWebAPI\\MiWebAPI.csproj": {}
+    "C:\\Users\\usuario\\Desktop\\repasoTaller\\tl2-tp4-2025-matj1221\\MiWebAPI\\MiWebAPI.csproj": {}
   },
   "projects": {
-    "C:\\Users\\usuario\\Desktop\\repasoTaller\\TP4\\tl2-tp4-2025-matj1221\\MiWebAPI\\MiWebAPI.csproj": {
+    "C:\\Users\\usuario\\Desktop\\repasoTaller\\tl2-tp4-2025-matj1221\\MiWebAPI\\MiWebAPI.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\usuario\\Desktop\\repasoTaller\\TP4\\tl2-tp4-2025-matj1221\\MiWebAPI\\MiWebAPI.csproj",
+        "projectUniqueName": "C:\\Users\\usuario\\Desktop\\repasoTaller\\tl2-tp4-2025-matj1221\\MiWebAPI\\MiWebAPI.csproj",
         "projectName": "MiWebAPI",
-        "projectPath": "C:\\Users\\usuario\\Desktop\\repasoTaller\\TP4\\tl2-tp4-2025-matj1221\\MiWebAPI\\MiWebAPI.csproj",
+        "projectPath": "C:\\Users\\usuario\\Desktop\\repasoTaller\\tl2-tp4-2025-matj1221\\MiWebAPI\\MiWebAPI.csproj",
         "packagesPath": "C:\\Users\\usuario\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\usuario\\Desktop\\repasoTaller\\TP4\\tl2-tp4-2025-matj1221\\MiWebAPI\\obj\\",
+        "outputPath": "C:\\Users\\usuario\\Desktop\\repasoTaller\\tl2-tp4-2025-matj1221\\MiWebAPI\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\usuario\\AppData\\Roaming\\NuGet\\NuGet.Config"

@@ -2,39 +2,48 @@ using System.Linq;
 using espacioCadeteria;
 using Microsoft.AspNetCore.Mvc;
 
-// DTOs simples para requests/responses
-public record PedidoDto(int nro, string nombre, string direccion, string telefono, string refDir, string? obs, int estado, int? idCadete);
-public record AsignacionDto(int idPedido, int idCadete);
-public record EstadoDto(int idPedido, int nuevoEstado);
-public record ReasignacionDto(int idPedido, int idNuevoCadete);
-
-public record InformeCadeteDto(int idCadete, string nombre, int entregados, int jornal);
-public record InformeDto(int totalPedidos, int pendientes, int entregados, List<InformeCadeteDto> porCadete);
-
 [ApiController]
 [Route("api/[controller]")]
 public class CadeteriaController : ControllerBase
 {
-    private Cadeteria _cadeteria = new Cadeteria("Mi Cadetería", "381-5555555");
-    // GET: GetPedidos() => lista de pedidos
+    private Cadeteria _cadeteria;
+    private AccesoADatosCadeteria _adCadeteria;
+    private AccesoADatosCadetes _adCadetes;
+    private AccesoADatosPedidos _adPedidos;
+
+    public CadeteriaController()
+    {
+        _adCadeteria = new AccesoADatosCadeteria();
+        _adCadetes = new AccesoADatosCadetes();
+        _adPedidos = new AccesoADatosPedidos();
+
+        _cadeteria = _adCadeteria.Obtener();
+        var cadetes = _adCadetes.Obtener();
+        var pedidos = _adPedidos.Obtener(cadetes);
+
+        _cadeteria.AgregarListaCadetes(cadetes);
+        _cadeteria.AgregarListaPedidos(pedidos);
+    }
+
+    // ========== GETs ==========
     [HttpGet("pedidos")]
-    public ActionResult<List<object>> GetPedidos()
+    public ActionResult GetPedidos()
     {
-        var lista = _cadeteria.VerPedidos();
+        var lista = _cadeteria.VerPedidos()
+            .Select(p => new { nro = p.VerNro(), estado = (int)p.verEstado(), idCadete = p.VerCadete()?.VerId() });
         return Ok(lista);
     }
 
-    // GET: GetCadetes() => lista de cadetes
     [HttpGet("cadetes")]
-    public ActionResult<List<object>> GetCadetes()
+    public ActionResult GetCadetes()
     {
-        var lista = _cadeteria.VerCadetes(); // Id, Nombre, Telefono, Direccion
+        var lista = _cadeteria.VerCadetes()
+            .Select(c => new { id = c.VerId(), nombre = c.VerNombre(), telefono = c.VerTelefono(), direccion = c.VerDireccion() });
         return Ok(lista);
     }
 
-    // GET: GetInforme() => objeto Inforsme
     [HttpGet("informe")]
-    public ActionResult<InformeDto> GetInforme()
+    public ActionResult GetInforme()
     {
         var cadetes = _cadeteria.VerCadetes();
         var pedidos = _cadeteria.VerPedidos();
@@ -43,57 +52,75 @@ public class CadeteriaController : ControllerBase
         int entregados = pedidos.Count(p => p.verEstado() == EstadoPedido.Entregado);
         int pendientes = total - entregados;
 
-        var porCadete =
-            from c in cadetes
-            let cant = _cadeteria.CantidadEntregados(c.VerId())
-            let jornal = _cadeteria.JornalACobrar(c.VerId())
-            select new InformeCadeteDto(c.VerId(), c.VerNombre(), cant, jornal);
+        var porCadete = cadetes.Select(c => new
+        {
+            idCadete = c.VerId(),
+            nombre = c.VerNombre(),
+            entregados = _cadeteria.CantidadEntregados(c.VerId()),
+            jornal = _cadeteria.JornalACobrar(c.VerId())
+        });
 
-        return Ok(new InformeDto(total, pendientes, entregados, porCadete.ToList()));
+        return Ok(new { totalPedidos = total, pendientes, entregados, porCadete });
     }
 
-    // POST: AgregarPedido(Pedido pedido)
+    // ========== POST ==========
+    public record PedidoCreateDto(int nro, string nombre, string direccion, string telefono, string refDir, string? obs, int? idCadete);
+
     [HttpPost("pedidos")]
-    public ActionResult AgregarPedido([FromBody] PedidoDto dto)
+    public ActionResult AgregarPedido([FromBody] PedidoCreateDto dto)
     {
-        if (dto is null) return BadRequest("Body inválido"); // 400
+        if (dto is null) return BadRequest("Body inválido");
+        if (dto.nro <= 0 || string.IsNullOrWhiteSpace(dto.nombre)) return BadRequest("Datos inválidos");
+
         var cliente = new Cliente(dto.nombre, dto.direccion, dto.telefono, dto.refDir);
         var p = new Pedido(dto.nro, cliente, dto.obs ?? "");
-        _cadeteria.AgregarPedido(p);
+        if (!_cadeteria.AgregarPedido(p)) return BadRequest("Nro de pedido ya existe");
 
-        // Si vino idCadete, asignamos
         if (dto.idCadete is int idC)
         {
             var ok = _cadeteria.AsignarCadeteAPedido(idC, dto.nro);
-            if (!ok) return NotFound("Cadete o Pedido no encontrado"); // 404
+            if (!ok) return NotFound("Cadete o Pedido no encontrado");
         }
 
-        // 201 Created (como “vimos en clase”)
+        // **TP5 punto 3: Guardar después de alta**
+        _adPedidos.Guardar(_cadeteria.VerPedidos());
+
         return Created($"/api/cadeteria/pedidos/{dto.nro}", new { dto.nro });
     }
 
-    // PUT: AsignarPedido(int idPedido, int idCadete)
+    // ========== PUTs ==========
     [HttpPut("pedidos/{idPedido:int}/asignar/{idCadete:int}")]
     public ActionResult AsignarPedido([FromRoute] int idPedido, [FromRoute] int idCadete)
     {
         var ok = _cadeteria.AsignarCadeteAPedido(idCadete, idPedido);
-        return ok ? Ok() : NotFound("Cadete o Pedido no encontrado");
+        if (!ok) return NotFound("Cadete o Pedido no encontrado");
+
+        // **TP5 punto 3: Guardar después de asignar**
+        _adPedidos.Guardar(_cadeteria.VerPedidos());
+        return Ok();
     }
 
-    // PUT: CambiarEstadoPedido(int idPedido,int NuevoEstado)
     [HttpPut("pedidos/{idPedido:int}/estado/{nuevoEstado:int}")]
     public ActionResult CambiarEstadoPedido([FromRoute] int idPedido, [FromRoute] int nuevoEstado)
     {
         if (nuevoEstado is not (0 or 1)) return BadRequest("Estado inválido (0=Pendiente,1=Entregado)");
+
         var ok = _cadeteria.CambiarEstadoPedidoPorNro(idPedido, (EstadoPedido)nuevoEstado);
-        return ok ? Ok() : NotFound("Pedido no encontrado");
+        if (!ok) return NotFound("Pedido no encontrado");
+
+        // **TP5 punto 3: Guardar después de cambiar estado**
+        _adPedidos.Guardar(_cadeteria.VerPedidos());
+        return Ok();
     }
 
-    // PUT: CambiarCadetePedido(int idPedido,int idNuevoCadete)
     [HttpPut("pedidos/{idPedido:int}/cadete/{idNuevoCadete:int}")]
     public ActionResult CambiarCadetePedido([FromRoute] int idPedido, [FromRoute] int idNuevoCadete)
     {
         var ok = _cadeteria.ReasignarPedidoPorNro(idPedido, idNuevoCadete);
-        return ok ? Ok() : NotFound("Cadete o Pedido no encontrado");
+        if (!ok) return NotFound("Cadete o Pedido no encontrado");
+
+        // **TP5 punto 3: Guardar después de reasignar**
+        _adPedidos.Guardar(_cadeteria.VerPedidos());
+        return Ok();
     }
 }

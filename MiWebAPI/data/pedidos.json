@@ -1,0 +1,14 @@
+[
+  {
+    "nro": 777,
+    "cliente": {
+      "nombre": "Mati",
+      "direccion": "Emi 441",
+      "telefono": "3815571833",
+      "refDir": "Ninguna"
+    },
+    "obs": "No hay",
+    "estado": 0,
+    "idCadete": 1
+  }
+]

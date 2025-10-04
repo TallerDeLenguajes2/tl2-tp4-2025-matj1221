@@ -79,4 +79,15 @@ public class Cadeteria
     public bool CambiarEstadoPedidoPorNro(int nroPedido, EstadoPedido nuevo) => CambiarEstado(nroPedido, nuevo);
     public bool ReasignarPedidoPorNro(int nroPedido, int idCadeteDestino) => ReasignarPedido(nroPedido, idCadeteDestino);
 
+    public void AgregarListaCadetes(List<Cadete> cadetes)
+    {
+        ListadoCadetes.Clear();
+        if (cadetes != null) ListadoCadetes.AddRange(cadetes);
+    }
+
+    public void AgregarListaPedidos(List<Pedido> pedidos)
+    {
+        ListadoPedidos.Clear();
+        if (pedidos != null) ListadoPedidos.AddRange(pedidos);
+    }
 }

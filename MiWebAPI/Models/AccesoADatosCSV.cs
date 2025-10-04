@@ -5,8 +5,6 @@ namespace espacioCadeteria
     using System.IO;
     using System.Linq;
     using System.Text;
-    using espacioCliente;
-    using espacioPedido;
 
     public class AccesoADatosCSV : IAccesoADatos
     {
@@ -82,7 +80,7 @@ namespace espacioCadeteria
             foreach (var p in pedidos)
             {
                 var cadId = p.VerCadete()?.VerId().ToString() ?? "";
-                sb.AppendLine($"{p.VerNro()};{p.VerNombreCliente()};{p.VerDireccionCliente()};{p.VerTelefonoCliente()};{p.VerRefDirCliente()};{p.VerObs()};{cadId};{(int)p.VerEstado()}");
+                sb.AppendLine($"{p.VerNro()};{p.VerNombreCliente()};{p.VerDireccionCliente()};{p.VerTelefonoCliente()};{p.VerRefDirCliente()};{p.VerObs()};{cadId};{(int)p.verEstado()}");
             }
             File.WriteAllText(ruta, sb.ToString());
         }

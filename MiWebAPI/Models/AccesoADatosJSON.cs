@@ -107,7 +107,7 @@ public class AccesoADatosJSON : IAccesoADatos
                 refDir = p.VerRefDirCliente()
             },
             obs = p.VerObs(),
-            estado = (int)p.VerEstado(),
+            estado = (int)p.verEstado(),
             idCadete = (p.VerCadete() != null) ? p.VerCadete().VerId() : -1  // sentinela
         }).ToList();
 

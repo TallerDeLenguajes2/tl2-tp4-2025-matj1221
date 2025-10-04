@@ -1,0 +1,14 @@
+[
+    {
+        "Id": 1,
+        "Nombre": "Ana",
+        "Direccion": "Rivadavia 123",
+        "Telefono": "381-111-111"
+    },
+    {
+        "Id": 2,
+        "Nombre": "Luis",
+        "Direccion": "Sarmiento 456",
+        "Telefono": "381-222-222"
+    }
+]
